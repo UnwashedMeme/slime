@@ -211,14 +211,13 @@ says that I am starting to print an object with this id. The second says I am fi
   ;; this declare special is to let the compiler know that *record-repl-results* will eventually be
   ;; a global special, even if it isn't when this file is compiled/loaded.
   (declare (special *record-repl-results*))
-  (let ((slime-stream-p 
-	 (and *record-repl-results* (slime-stream-p stream))))
+  (let* ((slime-stream-p
+	  (and *record-repl-results* (slime-stream-p stream)))
+	 (target (find slime-stream-p '(:repl-result :dedicated))))
     (if slime-stream-p
 	(let* ((pid (swank::save-presented-object object))
 	       (record (make-presentation-record :id pid :printed-p nil
-						 :target (if (eq slime-stream-p :repl-result)
-							     :repl-result
-							     nil))))
+						 :target target)))
 	  (write-annotation stream #'presentation-start record)
 	  (multiple-value-prog1
 	      (funcall continue)
