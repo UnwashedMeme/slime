@@ -251,16 +251,34 @@ This is set to nil after displaying the buffer.")
 (defun slime-repl-emit (string)
   ;; insert the string STRING in the output buffer
   (with-current-buffer (slime-output-buffer)
-    (save-excursion
-      (goto-char slime-output-end)
-      (slime-save-marker slime-output-start
-        (slime-propertize-region '(face slime-repl-output-face 
-                                        rear-nonsticky (face))
-          (insert-before-markers string)
-          (when (and (= (point) slime-repl-prompt-start-mark)
-                     (not (bolp)))
-            (insert-before-markers "\n")
-            (set-marker slime-output-end (1- (point)))))))
+    (let ((mark-at-input-start (= (point) (marker-position slime-repl-input-start-mark))))
+      (save-excursion
+	(goto-char slime-output-end)
+	(slime-save-marker slime-output-start
+	  (slime-propertize-region '(face slime-repl-output-face
+				     rear-nonsticky (face))
+	    ;;we can't use insert-before because that will alter any
+	    ;;overlays (e.g. presentations)
+	    (insert string)
+	    (set-marker slime-output-end (point))
+
+	    (when (< (marker-position slime-repl-input-start-mark)
+		     (marker-position slime-output-end))
+	      ;;we need to keep the slime-repl-input-start-mark AFTER
+	      ;;the output-end but because it is a right-inserting
+	      ;;mark it may not have gotten updated we guard with the
+	      ;;when in case it was ahead already we don't want to
+	      ;;move it backwards.
+	      (set-marker slime-repl-input-start-mark (marker-position slime-output-end)))
+	    (when (and (= slime-output-end slime-repl-prompt-start-mark)
+		       (not (bolp)))
+	      (insert "\n")
+	      (set-marker slime-output-end (1- (point)))))))
+      (when mark-at-input-start
+	;;if prior to this insertion (= output-end input-start point)
+	;;then the point will also have fallen behind, update it here
+	;;to maintain
+	(slime-move-point (marker-position slime-repl-input-start-mark))))
     (when slime-repl-popup-on-output
       (setq slime-repl-popup-on-output nil)
       (display-buffer (current-buffer)))
