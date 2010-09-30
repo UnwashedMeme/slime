@@ -78,6 +78,12 @@ be sensitive and remember what object it is in the repl if predicate is true"
 	       :type "lisp"
 	       :directory (pathname-directory swank-loader:*source-directory*)))))))
 
+(defvar *dedicated-presentation-streams* nil
+  "A list of other streams that the presentation-streams system should
+consider to be dedicated output streams; i.e. will respond correctly
+to the process filter protocol embedding escape sequences in the string.
+")
+
 (let ((last (cons nil nil)))
   ;;we use a single cons cell as an atomic pair so that even if
   ;;multiple threads are running and set/stomp on this 'last
@@ -131,6 +137,7 @@ Two special return values:
 	       #+allegro
 	       (and (typep stream 'excl:xp-simple-stream)
 		    (slime-stream-p (excl::stream-output-handle stream)))
+               (and (member stream *dedicated-presentation-streams*) :dedicated)
 	       (loop for connection in *connections*
 		     thereis (or (and (eq stream (connection.dedicated-output connection))
 				      :dedicated)
