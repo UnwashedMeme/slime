@@ -137,7 +137,8 @@ Two special return values:
 	       #+allegro
 	       (and (typep stream 'excl:xp-simple-stream)
 		    (slime-stream-p (excl::stream-output-handle stream)))
-               (and (member stream *dedicated-presentation-streams*) :dedicated)
+               (and *use-dedicated-output-stream*
+                    (member stream *dedicated-presentation-streams*) :dedicated)
 	       (loop for connection in *connections*
 		     thereis (or (and (eq stream (connection.dedicated-output connection))
 				      :dedicated)
