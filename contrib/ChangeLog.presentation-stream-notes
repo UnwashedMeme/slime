@@ -1,0 +1,13 @@
+2010-10-04  Nathan Bird  <nathan@acceleration.net>
+
+* swank-presentation-streams.lisp
+(*dedicated-presentation-streams*): new dynamic variable: list of
+other streams the presentation-streams system should consider to
+be dedicated output streams.
+(slime-stream-p): make last-answer caching thread-safe.
+(presenting-object-1): result of
+slime-stream-p should be passed galong if it is :DEDICATED as well.
+
+* slime-repl.el (slime-repl-emit): use insert instead of
+insert-before so that overlays aren't effected. update other
+markers to preserve the desired behavior.
